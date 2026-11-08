@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Data - Data Classifier{% endblock %}
+{% block content %}
+
+<div class="page-header-box">
+  <div class="badge bg-primary-subtle text-primary border border-primary-subtle mb-2">Langkah 1 dari 5</div>
+  <h2 class="page-headline">1. Data Ingestion &amp; Pratinjau</h2>
+  <p class="page-description">Unggah berkas dataset (.csv, .xlsx, atau .json) untuk memulai seluruh alur kerja klasifikasi data mining.</p>
+</div>
+
+<!-- Upload Section -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Unggah Berkas Dataset</span>
+    <span class="badge bg-light text-muted border">Format didukung: .csv, .xlsx, .json</span>
+  </div>
+  <div class="card-body">
+    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="row g-2 align-items-center">
+      <div class="col-md-8">
+        <input class="form-control" type="file" name="file" accept=".csv,.xlsx,.xls,.json" required>
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-primary w-100" type="submit">Upload &amp; Muat Dataset</button>
+      </div>
+    </form>
+    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top text-muted small">
+      <span>Lokasi penyimpanan lokal: <code>data/uploads/</code></span>
+      <a href="{{ url_for('storage_page') }}" class="text-secondary text-decoration-none">Kelola Penyimpanan (Storage) &rarr;</a>
+    </div>
+  </div>
+</div>
+
+{% if filename %}
+<!-- Dataset Summary & Preview -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <strong>Dataset:</strong> <span class="text-primary">{{ filename }}</span>
+      <span class="text-muted ms-2 small">({{ shape[0] }} baris &times; {{ shape[1] }} kolom)</span>
+    </div>
+    <a href="{{ url_for('explore') }}" class="btn btn-sm btn-outline-primary">Lanjut ke Explore &rarr;</a>
+  </div>
+  <div class="card-body">
+    <!-- Binary Target Candidates -->
+    <div class="p-3 mb-3 rounded border bg-light">
+      <div class="small fw-bold text-secondary mb-1">Kandidat Target Biner Terdeteksi:</div>
+      <div class="d-flex flex-wrap gap-2">
+        {% for c in binary_candidates %}
+          <span class="badge bg-primary fs-6">{{ c }}</span>
+        {% else %}
+          <span class="text-muted small">Tidak ada kolom yang memiliki tepat dua nilai unik.</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Columns -->
+    <div class="mb-3">
+      <div class="small fw-bold text-secondary mb-1">Daftar Kolom ({{ columns|length }}):</div>
+      <div class="d-flex flex-wrap gap-1">
+        {% for col in columns %}
+          <span class="badge bg-white text-dark border">{{ col }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Table Preview -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="small fw-bold text-secondary">Pratinjau Data (100 baris pertama):</span>
+      <span class="small text-muted">Scroll horizontal / vertikal untuk melihat seluruh fitur</span>
+    </div>
+
+    <div class="table-responsive border rounded" style="max-height: 420px; overflow-y: auto;">
+      <table class="table table-hover table-striped mb-0">
+        <thead class="sticky-top">
+          <tr>
+            <th class="text-center" style="width: 45px;">#</th>
+            {% for col in columns %}
+              <th>{{ col }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in preview %}
+            <tr>
+              <td class="text-center text-muted small">{{ loop.index }}</td>
+              {% for col in columns %}
+                <td>{{ row[col] }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 text-end">
+      <a href="{{ url_for('explore') }}" class="btn btn-primary">Lanjut ke Explore &rarr;</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

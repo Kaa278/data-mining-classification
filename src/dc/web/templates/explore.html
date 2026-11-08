@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Explore - Data Classifier{% endblock %}
+{% block content %}
+
+<div class="page-header-box">
+  <div class="badge bg-primary-subtle text-primary border border-primary-subtle mb-2">Langkah 2 dari 5</div>
+  <h2 class="page-headline">2. Exploratory Data Analysis (EDA)</h2>
+  <p class="page-description">Inspeksi ringkasan statistik dataset, deteksi missing values, cek baris duplikat, dan analisis keseimbangan kelas target.</p>
+</div>
+
+<!-- Target Selector Card -->
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="post" class="row g-2 align-items-center">
+      <div class="col-auto">
+        <label class="col-form-label small fw-bold">Pilih Kolom Target Analisis:</label>
+      </div>
+      <div class="col-auto flex-grow-1" style="max-width: 420px;">
+        <select class="form-select" name="target">
+          <option value="">-- Tanpa target (hanya struktur kolom) --</option>
+          {% for col in info.schema %}
+            <option value="{{ col.name }}" {% if target==col.name %}selected{% endif %}>
+              {{ col.name }} {% if col.unique == 2 %}(Rekomendasi Biner){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" type="submit">Jalankan Inspeksi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if info %}
+<!-- KPI Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-value text-primary">{{ info.rows }}</div>
+      <div class="kpi-title">Total Baris</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-value text-info">{{ info.columns }}</div>
+      <div class="kpi-title">Total Kolom</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-value {% if info.duplicate_rows > 0 %}text-warning{% else %}text-success{% endif %}">
+        {{ info.duplicate_rows }}
+      </div>
+      <div class="kpi-title">Baris Duplikat</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-value {% if info.total_missing > 0 %}text-danger{% else %}text-success{% endif %}">
+        {{ info.total_missing }}
+      </div>
+      <div class="kpi-title">Missing Values</div>
+    </div>
+  </div>
+</div>
+
+{% if info.target %}
+<!-- Class Distribution Breakdown -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Distribusi Keseimbangan Kelas: <strong>{{ info.target }}</strong></span>
+    {% if info.class_balance.imbalanced %}
+      <span class="badge bg-warning text-dark">Imbalanced (&lt; 20%)</span>
+    {% else %}
+      <span class="badge bg-success">Balanced</span>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      {% for c in info.class_balance.classes %}
+      <div class="col-md-6">
+        <div class="p-3 border rounded bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small fw-bold">Label: <code>{{ c.label }}</code></span>
+            <span class="small text-muted">{{ c.count }} baris ({{ c.pct }}%)</span>
+          </div>
+          <div class="progress" style="height: 6px;">
+            <div class="progress-bar {% if loop.first %}bg-primary{% else %}bg-secondary{% endif %}" style="width: {{ c.pct }}%"></div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if info.class_balance.imbalanced %}
+    <div class="alert alert-warning small mt-3 mb-0 border-0">
+      <strong>Catatan:</strong> Target terindikasi imbalanced. Gunakan opsi <code>Balanced class weights</code> saat pelatihan agar model tidak bias.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Schema Details Table -->
+<div class="card mb-4">
+  <div class="card-header">
+    Detail Fitur Kolom &amp; Tipe Data
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Nama Kolom</th>
+            <th>Tipe Data</th>
+            <th>Klasifikasi</th>
+            <th>Missing %</th>
+            <th>Nilai Unik</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for col in info.schema %}
+            <tr>
+              <td>
+                <strong>{{ col.name }}</strong>
+                {% if col.is_target %}
+                  <span class="badge bg-primary ms-1">target</span>
+                {% elif col.unique == 2 %}
+                  <span class="badge bg-light text-dark border ms-1">biner</span>
+                {% endif %}
+              </td>
+              <td><code>{{ col.dtype }}</code></td>
+              <td>
+                {% if col.kind == 'numeric' %}
+                  <span class="badge bg-light text-primary border">numeric</span>
+                {% else %}
+                  <span class="badge bg-light text-secondary border">categorical</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if col.missing_pct > 0 %}
+                  <span class="text-danger fw-bold">{{ col.missing_pct }}%</span>
+                {% else %}
+                  <span class="text-muted small">0%</span>
+                {% endif %}
+              </td>
+              <td>{{ col.unique }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+    <span class="text-muted small">Laporan otomatis tersimpan di <code>reports/</code></span>
+    <a href="{{ url_for('train_page') }}" class="btn btn-sm btn-primary">Lanjut ke Train &rarr;</a>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

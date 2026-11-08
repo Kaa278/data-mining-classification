@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Storage - Data Classifier{% endblock %}
+{% block content %}
+
+<div class="page-header-box">
+  <h2 class="page-headline">Storage Management</h2>
+  <p class="page-description">Kelola kapasitas penyimpanan lokal untuk data upload, model, dan riwayat SQLite.</p>
+</div>
+
+<!-- Storage KPI Summary -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-value text-primary">{{ uploads_size }}</div>
+      <div class="kpi-title">Uploads ({{ uploads|length }})</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-value text-success">{{ models_size }}</div>
+      <div class="kpi-title">Models ({{ models|length }})</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-value text-info">{{ reports_size }}</div>
+      <div class="kpi-title">Reports ({{ reports|length }})</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-value text-secondary">{{ db_size }}</div>
+      <div class="kpi-title">History DB ({{ counts.runs }})</div>
+    </div>
+  </div>
+</div>
+
+<!-- Uploads Table -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Berkas Unggahan (<code>data/uploads/</code>)</span>
+    <form action="{{ url_for('storage_clear') }}" method="post" onsubmit="return confirm('Hapus semua berkas upload?');">
+      <input type="hidden" name="scope" value="uploads">
+      <button class="btn btn-sm btn-outline-danger" type="submit" {% if not uploads %}disabled{% endif %}>Bersihkan Semua Upload</button>
+    </form>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Nama Berkas</th><th>Ukuran</th><th>Waktu</th><th class="text-end">Aksi</th></tr></thead>
+        <tbody>
+          {% for item in uploads %}
+            <tr>
+              <td><strong>{{ item.name }}</strong></td>
+              <td>{{ item.size_text }}</td>
+              <td class="small text-muted">{{ item.mtime }}</td>
+              <td class="text-end">
+                <form action="{{ url_for('storage_delete') }}" method="post" class="d-inline" onsubmit="return confirm('Hapus berkas ini?');">
+                  <input type="hidden" name="kind" value="upload">
+                  <input type="hidden" name="name" value="{{ item.name }}">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Hapus</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada berkas unggahan.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Models Table -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Berkas Model Tersimpan (<code>models/</code>)</span>
+    <form action="{{ url_for('storage_clear') }}" method="post" onsubmit="return confirm('Hapus semua model tersimpan?');">
+      <input type="hidden" name="scope" value="models">
+      <button class="btn btn-sm btn-outline-danger" type="submit" {% if not models %}disabled{% endif %}>Bersihkan Semua Model</button>
+    </form>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Nama Model</th><th>Ukuran</th><th>Waktu</th><th class="text-end">Aksi</th></tr></thead>
+        <tbody>
+          {% for item in models %}
+            <tr>
+              <td><strong>{{ item.name }}</strong></td>
+              <td>{{ item.size_text }}</td>
+              <td class="small text-muted">{{ item.mtime }}</td>
+              <td class="text-end">
+                <form action="{{ url_for('storage_delete') }}" method="post" class="d-inline" onsubmit="return confirm('Hapus model ini?');">
+                  <input type="hidden" name="kind" value="model">
+                  <input type="hidden" name="name" value="{{ item.name }}">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Hapus</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada model tersimpan.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Reports Table -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Berkas Laporan Otomatis (<code>reports/</code>)</span>
+    <form action="{{ url_for('storage_clear') }}" method="post" onsubmit="return confirm('Hapus semua berkas laporan?');">
+      <input type="hidden" name="scope" value="reports">
+      <button class="btn btn-sm btn-outline-danger" type="submit" {% if not reports %}disabled{% endif %}>Bersihkan Laporan</button>
+    </form>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Berkas Laporan</th><th>Ukuran</th><th>Waktu</th><th class="text-end">Aksi</th></tr></thead>
+        <tbody>
+          {% for item in reports %}
+            <tr>
+              <td><code>{{ item.name }}</code></td>
+              <td>{{ item.size_text }}</td>
+              <td class="small text-muted">{{ item.mtime }}</td>
+              <td class="text-end">
+                <form action="{{ url_for('storage_delete') }}" method="post" class="d-inline" onsubmit="return confirm('Hapus laporan ini?');">
+                  <input type="hidden" name="kind" value="report">
+                  <input type="hidden" name="name" value="{{ item.name }}">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Hapus</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" class="text-center text-muted py-3">Tidak ada berkas laporan.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Clear Everything Button -->
+<div class="p-3 border rounded bg-white mb-4 d-flex justify-content-between align-items-center">
+  <div>
+    <strong>Hapus Seluruh Data Penyimpanan</strong>
+    <div class="small text-muted">Membersihkan semua upload, model, laporan, dan riwayat SQLite sekaligus.</div>
+  </div>
+  <form action="{{ url_for('storage_clear') }}" method="post" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin menghapus SEMUA data penyimpanan lokal?');">
+    <input type="hidden" name="scope" value="all">
+    <button class="btn btn-danger" type="submit">Bersihkan Seluruh Penyimpanan</button>
+  </form>
+</div>
+
+{% endblock %}

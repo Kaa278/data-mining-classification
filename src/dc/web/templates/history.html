@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}History - Data Classifier{% endblock %}
+{% block content %}
+
+<div class="page-header-box">
+  <h2 class="page-headline">Execution History</h2>
+  <p class="page-description">Catatan aktivitas pelatihan model dan inferensi massal dari database lokal.</p>
+</div>
+
+<!-- Training Runs Table -->
+<div class="card mb-4">
+  <div class="card-header">
+    Riwayat Pelatihan Model (Training Runs)
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Waktu Dibuat</th>
+            <th>Tipe</th>
+            <th>Status</th>
+            <th>Target</th>
+            <th>Kelas Positif</th>
+            <th>Model</th>
+            <th>Berkas Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in runs %}
+            <tr>
+              <td class="small text-muted">{{ r.created_at }}</td>
+              <td>{{ r.type }}</td>
+              <td>
+                <span class="badge {% if r.status in ['done', 'success'] %}bg-success{% elif r.status == 'error' %}bg-danger{% else %}bg-secondary{% endif %}">
+                  {{ r.status }}
+                </span>
+              </td>
+              <td><strong>{{ r.target }}</strong></td>
+              <td><code>{{ r.positive_label }}</code></td>
+              <td class="small">{{ r.model_path }}</td>
+              <td class="small text-truncate" style="max-width: 250px;">{{ r.data_file }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="7" class="text-center text-muted py-3">Tidak ada riwayat training.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Batch Predictions Table -->
+<div class="card mb-4">
+  <div class="card-header">
+    Riwayat Prediksi Massal (Batch Predictions)
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Waktu Dibuat</th>
+            <th>Berkas Input</th>
+            <th>Berkas Output</th>
+            <th>Model</th>
+            <th>Threshold</th>
+            <th>Jumlah Baris</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in batches %}
+            <tr>
+              <td class="small text-muted">{{ b.created_at }}</td>
+              <td class="small">{{ b.input_file }}</td>
+              <td class="small"><code>{{ b.output_file }}</code></td>
+              <td class="small">{{ b.model_name }}</td>
+              <td><span class="badge bg-light text-dark border">{{ b.threshold }}</span></td>
+              <td><strong>{{ b.rows_predicted }}</strong></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6" class="text-center text-muted py-3">Tidak ada riwayat prediksi massal.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="text-end">
+  <a href="{{ url_for('storage_page') }}" class="btn btn-outline-danger">Kelola Penyimpanan &rarr;</a>
+</div>
+
+{% endblock %}

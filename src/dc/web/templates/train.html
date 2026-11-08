@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Train - Data Classifier{% endblock %}
+{% block content %}
+
+<div class="page-header-box">
+  <div class="badge bg-primary-subtle text-primary border border-primary-subtle mb-2">Langkah 3 dari 5</div>
+  <h2 class="page-headline">3. Pelatihan Model (Model Training)</h2>
+  <p class="page-description">Konfigurasi kolom target, validasi silang (Stratified K-Fold Cross-Validation), dan pemilihan kandidat algoritma klasifikasi.</p>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="post">
+      <!-- Section 1: Target & Columns -->
+      <div class="mb-4">
+        <h6 class="fw-bold text-dark mb-3">1. Target &amp; Fitur</h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Target Column <span class="text-danger">*</span></label>
+            <select class="form-select" name="target" required>
+              {% for col in columns %}
+                <option value="{{ col }}" {% if col == selected_target %}selected{% endif %}>
+                  {{ col }}{% if col in binary_columns %} (Biner){% endif %}
+                </option>
+              {% endfor %}
+            </select>
+            <div class="text-muted small mt-1">Kolom yang memiliki tepat 2 kelas untuk diprediksi.</div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Positive Class (Opsional)</label>
+            <input class="form-control" name="positive_label" placeholder="Contoh: 1, True, Yes, dsb.">
+            <div class="text-muted small mt-1">Biarkan kosong untuk penentuan otomatis.</div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Exclude Columns</label>
+            <select class="form-select" name="exclude" multiple size="3">
+              {% for col in columns %}
+                <option value="{{ col }}">{{ col }}</option>
+              {% endfor %}
+            </select>
+            <div class="text-muted small mt-1">Gunakan Ctrl/Cmd untuk memilih beberapa kolom.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <!-- Section 2: CV Parameters -->
+      <div class="mb-4">
+        <h6 class="fw-bold text-dark mb-3">2. Parameter Validasi</h6>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Test Size</label>
+            <input class="form-control" name="test_size" value="0.2">
+            <div class="text-muted small mt-1">0.2 = 20% data untuk pengujian akhir.</div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">CV Folds</label>
+            <input class="form-control" name="cv_folds" value="5">
+            <div class="text-muted small mt-1">5-Fold Stratified Cross-Validation.</div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Seed</label>
+            <input class="form-control" name="seed" value="42">
+            <div class="text-muted small mt-1">Angka acak untuk reproduktifitas hasil.</div>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Scoring Metric</label>
+            <select class="form-select" name="scoring">
+              <option value="f1_macro" selected>f1_macro</option>
+              <option value="roc_auc">roc_auc</option>
+              <option value="accuracy">accuracy</option>
+              <option value="balanced_accuracy">balanced_accuracy</option>
+              <option value="precision">precision</option>
+              <option value="recall">recall</option>
+            </select>
+            <div class="text-muted small mt-1">Kriteria penentuan model terbaik.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <!-- Section 3: Candidate Models -->
+      <div class="mb-4">
+        <h6 class="fw-bold text-dark mb-3">3. Kandidat Algoritma</h6>
+        <div class="row g-3">
+          {% for key, label in model_labels.items() %}
+          <div class="col-md-6 col-lg-3">
+            <div class="p-3 border rounded bg-white h-100">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="models" value="{{ key }}" id="m_{{ key }}" checked>
+                <label class="form-check-label fw-bold small text-dark d-block" for="m_{{ key }}">
+                  {{ label }}
+                </label>
+              </div>
+              <div class="text-muted small mt-1" style="font-size: 0.775rem;">
+                {% if key == 'logistic' %}
+                  Model linear probabilistik cepat &amp; interpretable.
+                {% elif key == 'random_forest' %}
+                  Ensemble decision tree dengan teknik bagging.
+                {% elif key == 'hist_gradient_boosting' %}
+                  Histogram gradient boosting akurasi tinggi.
+                {% else %}
+                  Baseline benchmark untuk pembanding performa.
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex flex-wrap gap-4 mt-3 pt-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="balanced" id="balanced">
+            <label class="form-check-label small fw-semibold" for="balanced">
+              Balanced class weights (bobot proporsional untuk kelas minoritas)
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="search" id="search">
+            <label class="form-check-label small fw-semibold" for="search">
+              Hyperparameter search (tuning parameter otomatis)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+        <span class="text-muted small">Model terbaik akan disimpan ke direktori <code>models/</code></span>
+        <button class="btn btn-primary px-4" type="submit">Start Training &rarr;</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

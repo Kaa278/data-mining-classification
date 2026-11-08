@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Data Classifier{% endblock %}
+{% block content %}
+
+<!-- Hero Card -->
+<div class="hero-box">
+  <div class="row align-items-center">
+    <div class="col-lg-8">
+      <div class="badge bg-primary-subtle text-primary border border-primary-subtle mb-2">Supervised Learning &bull; Klasifikasi Biner</div>
+      <h1 class="page-headline">Sistem Klasifikasi Data Mining</h1>
+      <p class="page-description mb-4" style="max-width: 600px;">
+        Aplikasi berbasis web untuk analisis data mining: unggah dataset tabular, eksplorasi data otomatis (EDA), latih berbagai algoritma klasifikasi, evaluasi metrik performa, dan lakukan uji prediksi data baru secara offline.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('data_page') }}" class="btn btn-primary">Mulai Unggah Dataset &rarr;</a>
+        <a href="{{ url_for('history_page') }}" class="btn btn-outline-primary">Lihat Riwayat Analisis</a>
+      </div>
+    </div>
+    <div class="col-lg-4 d-none d-lg-block">
+      <div class="p-3 border rounded bg-light small">
+        <div class="fw-bold text-secondary mb-2">Kandidat Algoritma:</div>
+        <div class="d-flex flex-column gap-1">
+          <div class="d-flex justify-content-between">
+            <span>Logistic Regression</span>
+            <span class="text-muted">Linear Model</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Random Forest</span>
+            <span class="text-muted">Ensemble Bagging</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Hist Gradient Boosting</span>
+            <span class="text-muted">Boosting Tree</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Dummy Classifier</span>
+            <span class="text-muted">Baseline Acuan</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Workflow Steps -->
+<div class="row g-3">
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-primary text-white">Langkah 1</span>
+          <span class="fw-bold">Data Ingestion</span>
+        </div>
+        <p class="text-muted small flex-grow-1">
+          Unggah berkas dataset (.csv, .xlsx, .json). Pratinjau struktur tabel data dan deteksi kandidat kolom target klasifikasi biner.
+        </p>
+        <a href="{{ url_for('data_page') }}" class="btn btn-sm btn-outline-primary mt-2">Buka Data &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-primary text-white">Langkah 2</span>
+          <span class="fw-bold">Exploratory Analysis</span>
+        </div>
+        <p class="text-muted small flex-grow-1">
+          Inspeksi missing values, tipe data tiap fitur, jumlah duplikat baris, dan analisis keseimbangan distribusi kelas target (class balance).
+        </p>
+        <a href="{{ url_for('explore') }}" class="btn btn-sm btn-outline-primary mt-2">Buka Explore &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-primary text-white">Langkah 3</span>
+          <span class="fw-bold">Model Training</span>
+        </div>
+        <p class="text-muted small flex-grow-1">
+          Latih model dengan Stratified K-Fold CV, opsi penanganan kelas tidak seimbang (balanced weights), dan pencarian hyperparameter.
+        </p>
+        <a href="{{ url_for('train_page') }}" class="btn btn-sm btn-outline-primary mt-2">Buka Train &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-primary text-white">Langkah 4</span>
+          <span class="fw-bold">Model Evaluation</span>
+        </div>
+        <p class="text-muted small flex-grow-1">
+          Analisis metrik performa (Accuracy, F1, Precision, Recall, ROC-AUC) serta visualisasi Confusion Matrix dan simulasi decision threshold.
+        </p>
+        <a href="{{ url_for('evaluate_page') }}" class="btn btn-sm btn-outline-primary mt-2">Buka Evaluate &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-primary text-white">Langkah 5</span>
+          <span class="fw-bold">Prediction &amp; Inference</span>
+        </div>
+        <p class="text-muted small flex-grow-1">
+          Lakukan prediksi langsung pada satu kasus lewat input manual atau proses prediksi massal (batch prediction) dengan unduhan file CSV.
+        </p>
+        <a href="{{ url_for('predict_page') }}" class="btn btn-sm btn-outline-primary mt-2">Buka Predict &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-secondary text-white">Sistem</span>
+          <span class="fw-bold">Model &amp; Storage</span>
+        </div>
+        <p class="text-muted small flex-grow-1">
+          Kelola dan muat model tersimpan (.joblib) atau kelola kapasitas penyimpanan lokal berkas unggahan dan basis data riwayat.
+        </p>
+        <div class="d-flex gap-2 mt-2">
+          <a href="{{ url_for('model_page') }}" class="btn btn-sm btn-light border flex-grow-1">Models</a>
+          <a href="{{ url_for('storage_page') }}" class="btn btn-sm btn-light border flex-grow-1">Storage</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

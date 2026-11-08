@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Evaluate - Data Classifier{% endblock %}
+{% block content %}
+
+<div class="page-header-box">
+  <div class="badge bg-primary-subtle text-primary border border-primary-subtle mb-2">Langkah 4 dari 5</div>
+  <h2 class="page-headline">4. Evaluasi Model (Model Evaluation)</h2>
+  <p class="page-description">Evaluasi performa metrik klasifikasi (Accuracy, F1, Precision, Recall, ROC-AUC), visualisasi Confusion Matrix, dan penyesuaian Decision Threshold.</p>
+</div>
+
+<!-- Active Model Bar -->
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+      <div>
+        <span class="text-muted small">Model Terpilih:</span><br>
+        <strong class="fs-5 text-dark">{{ bundle.metadata.model_label if bundle.metadata else 'None' }}</strong>
+      </div>
+      <div>
+        <span class="text-muted small">Target Kolom:</span><br>
+        <strong class="text-dark">{{ bundle.metadata.target if bundle.metadata else '-' }}</strong>
+      </div>
+      <div>
+        <span class="text-muted small">Kelas Positif (1):</span><br>
+        <strong class="text-success">{{ bundle.metadata.positive_label if bundle.metadata else '-' }}</strong>
+      </div>
+      <div>
+        <span class="text-muted small">Threshold Saat Ini:</span><br>
+        <span class="badge bg-dark fs-6">{{ '%.2f'|format(threshold) }}</span>
+      </div>
+    </div>
+
+    <!-- Threshold Slider Form -->
+    <form method="post" class="p-3 border rounded bg-light">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-6">
+          <label class="form-label d-flex justify-content-between small fw-bold">
+            <span>Decision Threshold:</span>
+            <span class="text-primary" id="threshVal">{{ '%.2f'|format(threshold) }}</span>
+          </label>
+          <input type="range" class="form-range" name="threshold" min="0.05" max="0.95" step="0.01" value="{{ '%.2f'|format(threshold) }}"
+                 oninput="document.getElementById('threshVal').textContent = parseFloat(this.value).toFixed(2); this.nextElementSibling.value=this.value;">
+          <output class="d-none">{{ '%.2f'|format(threshold) }}</output>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" name="evaluate_on_current" id="evalcur" checked>
+            <label class="form-check-label small" for="evalcur">Evaluasi pada dataset aktif saat ini</label>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100 mt-md-3" type="submit">Update</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if metrics %}
+<!-- KPI Score Metrics -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="kpi-card text-center">
+      <div class="kpi-value text-primary">{{ '%.1f'|format(metrics.accuracy * 100) }}%</div>
+      <div class="kpi-title">Accuracy</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="kpi-card text-center">
+      <div class="kpi-value text-success">{{ '%.3f'|format(metrics.f1) }}</div>
+      <div class="kpi-title">F1-Score</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="kpi-card text-center">
+      <div class="kpi-value text-info">{{ '%.3f'|format(metrics.precision) }}</div>
+      <div class="kpi-title">Precision</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="kpi-card text-center">
+      <div class="kpi-value text-warning">{{ '%.3f'|format(metrics.recall) }}</div>
+      <div class="kpi-title">Recall</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="kpi-card text-center">
+      <div class="kpi-value text-purple" style="color: #6366f1;">
+        {% if metrics.roc_auc is not none %}{{ '%.3f'|format(metrics.roc_auc) }}{% else %}N/A{% endif %}
+      </div>
+      <div class="kpi-title">ROC-AUC</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="kpi-card text-center">
+      <div class="kpi-value text-secondary">
+        {% if metrics.log_loss is not none %}{{ '%.3f'|format(metrics.log_loss) }}{% else %}N/A{% endif %}
+      </div>
+      <div class="kpi-title">Log Loss</div>
+    </div>
+  </div>
+</div>
+
+<!-- Confusion Matrix & Support -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header">
+        Confusion Matrix (Threshold: {{ '%.2f'|format(metrics.threshold) }})
+      </div>
+      <div class="card-body">
+        <div class="matrix-grid">
+          <div class="matrix-cell cell-tn">
+            <div class="matrix-num">{{ metrics.confusion_matrix[0][0] }}</div>
+            <div class="matrix-lbl">True Negative (TN)</div>
+            <div class="text-muted small" style="font-size: 0.7rem;">Aktual: 0 &bull; Prediksi: 0</div>
+          </div>
+          <div class="matrix-cell cell-error">
+            <div class="matrix-num">{{ metrics.confusion_matrix[0][1] }}</div>
+            <div class="matrix-lbl">False Positive (FP)</div>
+            <div class="text-muted small" style="font-size: 0.7rem;">Aktual: 0 &bull; Prediksi: 1</div>
+          </div>
+          <div class="matrix-cell cell-error">
+            <div class="matrix-num">{{ metrics.confusion_matrix[1][0] }}</div>
+            <div class="matrix-lbl">False Negative (FN)</div>
+            <div class="text-muted small" style="font-size: 0.7rem;">Aktual: 1 &bull; Prediksi: 0</div>
+          </div>
+          <div class="matrix-cell cell-tp">
+            <div class="matrix-num">{{ metrics.confusion_matrix[1][1] }}</div>
+            <div class="matrix-lbl">True Positive (TP)</div>
+            <div class="text-muted small" style="font-size: 0.7rem;">Aktual: 1 &bull; Prediksi: 1</div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3 mt-3 text-muted small">
+          <span><span class="badge bg-success-subtle text-success border border-success me-1">Hijau</span> Tebakan Benar</span>
+          <span><span class="badge bg-danger-subtle text-danger border border-danger me-1">Merah</span> Salah Tebak</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header">
+        Distribusi Data (Support)
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <span class="small fw-bold text-secondary d-block mb-2">Ground Truth (Sebenarnya):</span>
+          <div class="d-flex justify-content-between p-2 border rounded bg-light mb-2">
+            <span>Aktual Negatif (0):</span>
+            <strong>{{ metrics.support.negative }} baris</strong>
+          </div>
+          <div class="d-flex justify-content-between p-2 border rounded bg-light">
+            <span>Aktual Positif (1):</span>
+            <strong class="text-primary">{{ metrics.support.positive }} baris</strong>
+          </div>
+        </div>
+
+        <div>
+          <span class="small fw-bold text-secondary d-block mb-2">Predicted (Hasil Tebakan):</span>
+          <div class="d-flex justify-content-between p-2 border rounded bg-light mb-2">
+            <span>Ditebak Negatif (0):</span>
+            <strong>{{ metrics.predicted.negative }} baris</strong>
+          </div>
+          <div class="d-flex justify-content-between p-2 border rounded bg-light">
+            <span>Ditebak Positif (1):</span>
+            <strong class="text-primary">{{ metrics.predicted.positive }} baris</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center">
+  <a href="{{ url_for('train_page') }}" class="btn btn-outline-secondary">&larr; Train</a>
+  <a href="{{ url_for('predict_page') }}" class="btn btn-primary">Predict &rarr;</a>
+</div>
+
+{% endblock %}

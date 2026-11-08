@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Data Classifier - Sistem Klasifikasi Data Mining{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='32' y2='32' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0%25' stop-color='%230f172a'/%3E%3Cstop offset='100%25' stop-color='%231e293b'/%3E%3C/linearGradient%3E%3ClinearGradient id='cg' x1='6' y1='6' x2='26' y2='26' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23bg)'/%3E%3Cpath d='M7.5 8.5H13C16.5 8.5 19 11.2 19 16C19 20.8 16.5 23.5 13 23.5H7.5V8.5ZM10.5 11.2V20.8H12.8C14.8 20.8 16.2 19.2 16.2 16C16.2 12.8 14.8 11.2 12.8 11.2Z' fill='%23ffffff'/%3E%3Cpath d='M24.5 12.2C23.1 9.8 20.4 8.5 17 8.5C12.2 8.5 8.8 11.8 8.8 16C8.8 20.2 12.2 23.5 17 23.5C20.4 23.5 23.1 22.2 24.5 19.8L22.2 18.2C21.2 19.8 19.3 20.8 17 20.8 C13.8 20.8 11.5 18.8 11.5 16 C11.5 13.2 13.8 11.2 17 11.2 C19.3 11.2 21.2 12.2 22.2 13.8Z' fill='url(%23cg)'/%3E%3Ccircle cx='24' cy='8.5' r='2.2' fill='%2338bdf8'/%3E%3C/svg%3E">
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/htmx.min.js') }}"></script>
+</head>
+<body>
+
+<!-- Header Navigation (Fixed at top) -->
+<header class="app-header">
+  <div class="container d-flex flex-wrap align-items-center justify-content-between gap-3" style="max-width: 1100px;">
+    <!-- Brand -->
+    <a href="{{ url_for('index') }}" class="brand-wrapper">
+      <svg class="brand-logo-svg" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="dcBg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#0f172a" />
+            <stop offset="100%" stop-color="#1e293b" />
+          </linearGradient>
+          <linearGradient id="dcGrad" x1="6" y1="6" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#6366f1" />
+            <stop offset="50%" stop-color="#4f46e5" />
+            <stop offset="100%" stop-color="#06b6d4" />
+          </linearGradient>
+          <linearGradient id="borderGrad" x1="0" y1="0" x2="0" y2="32" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="rgba(255,255,255,0.22)" />
+            <stop offset="100%" stop-color="rgba(255,255,255,0.04)" />
+          </linearGradient>
+        </defs>
+        <!-- Background Squircle Badge -->
+        <rect width="32" height="32" rx="9" fill="url(#dcBg)" />
+        <rect x="0.5" y="0.5" width="31" height="31" rx="8.5" stroke="url(#borderGrad)" />
+        
+        <!-- Letter D (Bold Crisp Monogram Stem & Loop) -->
+        <path d="M 7.5 8.5 H 13 C 16.5 8.5 19 11.2 19 16 C 19 20.8 16.5 23.5 13 23.5 H 7.5 V 8.5 Z M 10.5 11.2 V 20.8 H 12.8 C 14.8 20.8 16.2 19.2 16.2 16 C 16.2 12.8 14.8 11.2 12.8 11.2 Z" fill="#ffffff" />
+        
+        <!-- Letter C (Vibrant Modern Overlay Arc) -->
+        <path d="M 24.5 12.2 C 23.1 9.8 20.4 8.5 17 8.5 C 12.2 8.5 8.8 11.8 8.8 16 C 8.8 20.2 12.2 23.5 17 23.5 C 20.4 23.5 23.1 22.2 24.5 19.8 L 22.2 18.2 C 21.2 19.8 19.3 20.8 17 20.8 C 13.8 20.8 11.5 18.8 11.5 16 C 11.5 13.2 13.8 11.2 17 11.2 C 19.3 11.2 21.2 12.2 22.2 13.8 Z" fill="url(#dcGrad)" />
+        
+        <!-- Data Mining Binary Classification Accent Node -->
+        <circle cx="24" cy="8.5" r="2.2" fill="#38bdf8" />
+      </svg>
+      <div class="brand-text-title">Data Classifier</div>
+    </a>
+
+    <!-- Primary Workflow Navigation Pills -->
+    <nav class="nav-pills-menu">
+      <a href="{{ url_for('data_page') }}" class="nav-pill-link {% if request.path == url_for('data_page') %}active{% endif %}">Data</a>
+      <a href="{{ url_for('explore') }}" class="nav-pill-link {% if request.path == url_for('explore') %}active{% endif %}">Explore</a>
+      <a href="{{ url_for('train_page') }}" class="nav-pill-link {% if request.path == url_for('train_page') %}active{% endif %}">Train</a>
+      <a href="{{ url_for('evaluate_page') }}" class="nav-pill-link {% if request.path == url_for('evaluate_page') %}active{% endif %}">Evaluate</a>
+      <a href="{{ url_for('predict_page') }}" class="nav-pill-link {% if request.path == url_for('predict_page') %}active{% endif %}">Predict</a>
+    </nav>
+
+    <!-- Secondary Links -->
+    <div class="nav-secondary-links d-flex align-items-center gap-1">
+      <a href="{{ url_for('model_page') }}" class="{% if request.path == url_for('model_page') %}active{% endif %}">Models</a>
+      <a href="{{ url_for('history_page') }}" class="{% if request.path == url_for('history_page') %}active{% endif %}">History</a>
+      <a href="{{ url_for('storage_page') }}" class="{% if request.path == url_for('storage_page') %}active{% endif %}">Storage</a>
+    </div>
+  </div>
+</header>
+
+<!-- Main Scrollable Viewport (100% viewport shell) -->
+<main class="app-main-viewport">
+  <div class="container py-3" style="max-width: 1100px;">
+    <!-- Flash Feedback Alerts -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category=='error' else category }} alert-dismissible fade show d-flex justify-content-between align-items-center mb-4 border-0 shadow-sm" role="alert">
+            <div>{{ message }}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<!-- Compact Fixed Footer -->
+<footer class="app-footer">
+  <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2 py-2 text-muted small" style="max-width: 1100px;">
+    <span><strong>Data Classifier</strong> &mdash; Sistem Klasifikasi Data Berbasis Web Menggunakan Algoritma Data Mining</span>
+    <span class="badge bg-light text-secondary border">Offline Local Environment</span>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html>

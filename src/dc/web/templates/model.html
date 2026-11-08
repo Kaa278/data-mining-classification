@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Models - Data Classifier{% endblock %}
+{% block content %}
+
+<div class="page-header-box">
+  <h2 class="page-headline">Models Registry</h2>
+  <p class="page-description">Kelola dan muat model klasifikasi yang telah tersimpan di direktori <code>models/</code>.</p>
+</div>
+
+<!-- Active Model -->
+<div class="card mb-4">
+  <div class="card-header">
+    Model Aktif Sesi
+  </div>
+  <div class="card-body">
+    {% if bundle %}
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <strong class="fs-5">{{ bundle.metadata.model_label }}</strong> <code>({{ bundle.metadata.model_name }})</code><br>
+        <span class="text-muted small">Target: {{ bundle.metadata.target }} | Positive: {{ bundle.metadata.positive_label }} | Fitur: {{ bundle.metadata.feature_columns|length }} kolom</span>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('evaluate_page') }}" class="btn btn-sm btn-outline-secondary">Evaluate</a>
+        <a href="{{ url_for('predict_page') }}" class="btn btn-sm btn-primary">Predict</a>
+      </div>
+    </div>
+    {% else %}
+    <div class="text-muted small">
+      Belum ada model aktif di memori sesi. Pilih model dari daftar di bawah atau latih model baru di menu <a href="{{ url_for('train_page') }}">Train</a>.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Saved Models -->
+<div class="card mb-4">
+  <div class="card-header">
+    Saved Models (Model Tersimpan)
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Model Name</th>
+            <th>Terakhir Diubah</th>
+            <th class="text-end">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in models %}
+            <tr>
+              <td><strong>{{ m.name }}</strong></td>
+              <td class="text-muted small">{{ m.mtime }}</td>
+              <td class="text-end">
+                <form action="{{ url_for('model_load') }}" method="post" class="d-inline">
+                  <input type="hidden" name="path" value="{{ m.path }}">
+                  <button class="btn btn-sm btn-primary" type="submit">Load</button>
+                </form>
+                <form action="{{ url_for('storage_delete') }}" method="post" class="d-inline" onsubmit="return confirm('Hapus model ini?');">
+                  <input type="hidden" name="kind" value="model">
+                  <input type="hidden" name="name" value="{{ m.name }}">
+                  <input type="hidden" name="return_to" value="model">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Hapus</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="3" class="text-center text-muted py-4">Belum ada model tersimpan di direktori models/.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center">
+  <a href="{{ url_for('predict_page') }}" class="btn btn-outline-secondary">&larr; Predict</a>
+  <a href="{{ url_for('storage_page') }}" class="btn btn-outline-danger">Kelola Storage &rarr;</a>
+</div>
+
+{% endblock %}

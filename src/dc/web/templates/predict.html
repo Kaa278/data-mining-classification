@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Predict - Data Classifier{% endblock %}
+{% block content %}
+
+<div class="page-header-box">
+  <div class="badge bg-primary-subtle text-primary border border-primary-subtle mb-2">Langkah 5 dari 5</div>
+  <h2 class="page-headline">5. Uji Coba Prediksi (Prediction &amp; Inference)</h2>
+  <p class="page-description">Lakukan pengujian klasifikasi data baru: uji coba satu kasus secara manual atau prediksi massal (batch scoring) menggunakan file dataset baru.</p>
+</div>
+
+<!-- Active Model Bar -->
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <span class="text-muted small">Model Aktif:</span> <strong>{{ bundle.metadata.model_label if bundle.metadata else 'None' }}</strong>
+      </div>
+      <div>
+        <span class="text-muted small">Target:</span> <strong>{{ bundle.metadata.target if bundle.metadata else '-' }}</strong>
+      </div>
+      <div>
+        <span class="text-muted small">Ambang Batas:</span> <span class="badge bg-dark">{{ '%.2f'|format(threshold) }}</span>
+      </div>
+      <div>
+        <a href="{{ url_for('evaluate_page') }}" class="btn btn-sm btn-outline-secondary">Ubah Threshold</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Manual Input Column -->
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header">
+        Prediksi Manual (Input Fitur Per Kasus)
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <input type="hidden" name="mode" value="manual">
+          <div class="row g-2" style="max-height: 400px; overflow-y: auto;">
+            {% for f in features %}
+              <div class="col-md-6">
+                <label class="form-label small text-secondary mb-1">{{ f }}</label>
+                <input class="form-control form-control-sm" name="{{ f }}" required>
+              </div>
+            {% else %}
+              <div class="col-12 text-muted small">Belum ada fitur model yang dimuat. Silakan muat atau latih model terlebih dahulu.</div>
+            {% endfor %}
+          </div>
+
+          {% if features %}
+          <div class="mt-4 pt-2 border-top">
+            <button class="btn btn-primary w-100" type="submit">Predict Kasus Ini &rarr;</button>
+          </div>
+          {% endif %}
+        </form>
+
+        {% if result %}
+        <!-- Result Card -->
+        <div class="mt-4 p-3 border rounded bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small fw-bold text-secondary text-uppercase">Hasil Prediksi:</span>
+            <span class="badge {% if result.prediction == result.positive_label %}bg-success{% else %}bg-secondary{% endif %} fs-6 px-3 py-1">
+              {{ result.prediction }}
+            </span>
+          </div>
+
+          <div class="mb-2">
+            <div class="d-flex justify-content-between small text-secondary mb-1">
+              <span>Probabilitas Kelas Positif ({{ result.positive_label }}):</span>
+              <strong>{{ '%.2f'|format(result.probability * 100) }}%</strong>
+            </div>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar {% if result.probability >= result.threshold %}bg-success{% else %}bg-secondary{% endif %}" 
+                   style="width: {{ result.probability * 100 }}%"></div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between small text-muted border-top pt-2 mt-2">
+            <span>Threshold: <code>{{ '%.2f'|format(result.threshold) }}</code></span>
+            <span>Status: <strong>{% if result.prediction == result.positive_label %}Positif{% else %}Negatif{% endif %}</strong></span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Batch Prediction Column -->
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header">
+        Prediksi Massal (Batch Scoring)
+      </div>
+      <div class="card-body d-flex flex-column">
+        <p class="text-muted small mb-3">
+          Unggah berkas tabular tanpa label (.csv, .xlsx, .json) untuk memprediksi seluruh baris data sekaligus. Hasil prediksi akan otomatis diunduh dalam berkas CSV.
+        </p>
+
+        <form action="{{ url_for('predict_batch') }}" method="post" enctype="multipart/form-data" class="mb-3">
+          <div class="mb-3">
+            <input class="form-control" type="file" name="file" accept=".csv,.xlsx,.xls,.json" required>
+          </div>
+          <button class="btn btn-success w-100" type="submit">Predict &amp; Unduh CSV</button>
+        </form>
+
+        <div class="mt-auto p-3 border rounded bg-light small text-muted">
+          <div class="fw-bold text-dark mb-1">Format Berkas Unduhan:</div>
+          <div>Setiap baris data akan ditambahkan 3 kolom evaluasi:</div>
+          <ul class="mb-0 ps-3 mt-1">
+            <li><code>prediction</code>: label kelas hasil klasifikasi</li>
+            <li><code>probability</code>: estimasi probabilitas kelas positif</li>
+            <li><code>threshold</code>: ambang batas yang digunakan</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center">
+  <a href="{{ url_for('evaluate_page') }}" class="btn btn-outline-secondary">&larr; Evaluate</a>
+  <a href="{{ url_for('model_page') }}" class="btn btn-outline-primary">Models Registry &rarr;</a>
+</div>
+
+{% endblock %}

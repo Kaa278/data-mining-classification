@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Training... - Data Classifier{% endblock %}
+{% block content %}
+
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <div class="card mb-4">
+      <div class="card-header">
+        Pelatihan Model Sedang Berjalan (Training in Progress)
+      </div>
+      <div class="card-body">
+        <p class="text-muted small mb-3">
+          Proses pelatihan model berjalan di latar belakang (background). Halaman akan otomatis beralih ke halaman Evaluasi setelah proses selesai.
+        </p>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small fw-bold">Status Pelatihan:</span>
+            <span id="status" class="small text-muted">Memulai...</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div id="bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 15%"></div>
+          </div>
+        </div>
+
+        <div class="small fw-bold text-muted mb-1">Log Sistem:</div>
+        <pre id="log" class="p-2 border rounded bg-light" style="max-height: 250px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const jobId = "{{ job_id }}";
+  const log = document.getElementById('log');
+  const status = document.getElementById('status');
+  const bar = document.getElementById('bar');
+  let pct = 15;
+  function poll() {
+    fetch('/train/status/' + jobId)
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'running') {
+          if (data.messages) {
+            for (let m of data.messages) {
+              if (m[0] === 'progress') {
+                status.textContent = m[1];
+                if (typeof m[2] === 'number') {
+                  pct = Math.max(15, Math.min(95, Math.round(m[2]*100)));
+                  bar.style.width = pct + '%';
+                }
+              }
+            }
+          }
+          setTimeout(poll, 1000);
+        } else if (data.status === 'done') {
+          status.textContent = 'Pelatihan selesai! Mengalihkan ke evaluasi...';
+          bar.style.width = '100%';
+          bar.classList.remove('progress-bar-animated');
+          setTimeout(() => {
+            window.location.href = "{{ url_for('evaluate_page') }}";
+          }, 800);
+        } else if (data.status === 'error') {
+          status.textContent = 'Terjadi kesalahan saat pelatihan: ' + (data.error || 'Unknown error');
+          bar.classList.add('bg-danger');
+          bar.classList.remove('progress-bar-animated');
+        }
+        if (data.messages) {
+          log.textContent = data.messages.map(m => m[1]).join('\n');
+          log.scrollTop = log.scrollHeight;
+        }
+      })
+      .catch(err => {
+        status.textContent = 'Koneksi terputus, mencoba lagi...';
+        setTimeout(poll, 2000);
+      });
+  }
+  poll();
+</script>
+
+{% endblock %}
